@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import time
 import google.generativeai as genai
 from dotenv import load_dotenv
 import gradio as gr
@@ -18,7 +19,7 @@ genai.configure(api_key=GEMINI_API_KEY)
 con = sqlite3.connect("database.db", check_same_thread=False)
 cur = con.cursor()
 
-# Query to count the number of employees in the database
+# Query to count the number of employees in the database. To test if it is working
 cur.execute("SELECT COUNT(*) FROM employees")
 print("Database contains", cur.fetchone()[0], "employees")
 
@@ -75,6 +76,12 @@ Using the schema provided, you can perform operations such as querying data, ins
 model = genai.GenerativeModel(
     model_name="gemini-1.5-flash",
     system_instruction=first_prompt,
+    generation_config= {
+       "temperature": 1,
+       "top_p": 0.99,
+       "top_k": 0,
+       "max_output_tokens": 4096,
+    }
 )
 
 # Start a chat session with an empty history
@@ -83,12 +90,13 @@ chat = model.start_chat(
 )
 
 def ask(question):
-    """
-    Function to process the question, generate an SQL query,
-    fetch results from the database, and return a formatted message.
-    """
+    
+    # Function to process the question, generate an SQL query,
+    # fetch results from the database, and return a formatted message.
+    
 
     tries = 4  # Number of attempts
+    start_time = time.time()
 
     for attempt in range(tries):
         try:
@@ -126,6 +134,8 @@ def ask(question):
             print(init_question2)
             result2 = chat.send_message(init_question2)
             json2 = json.loads(result2.text.split('```json')[1].split('```')[0])
+            end_time = time.time()
+            print("Time taken:", end_time - start_time, "seconds")
             return json2["message"], data
         except Exception as e:
             if attempt < tries - 1:
