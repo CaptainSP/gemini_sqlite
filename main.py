@@ -78,9 +78,6 @@ model = genai.GenerativeModel(
     system_instruction=first_prompt,
     generation_config= {
        "temperature": 1,
-       "top_p": 0.99,
-       "top_k": 0,
-       "max_output_tokens": 4096,
     }
 )
 
